@@ -3,9 +3,7 @@ save_dir = "exp"
 seed = 3407
 
 [finetune]
-finetune = true
-ckpt_dir = "/home/ubuntu/Document/MMML/DiariZen/wavlm_large_s80_md/pytorch_model.bin"
-
+finetune = false
 
 [trainer]
 path = "trainer_dual_opt.Trainer"
@@ -22,7 +20,6 @@ validation_interval = 1
 freeze_wavlm = false
 lr_decay = false
 use_one_cycle_lr = false
-validation_before_training = true 
 
 [optimizer_small]
 path = "torch.optim.AdamW"
@@ -37,9 +34,9 @@ lr = 1e-3
 [model]
 path = "diarizen.models.eend.model_wavlm_conformer.Model"
 [model.args]
-wavlm_src = "wavlm_large_s80_md"
-wavlm_layer_num = 25
-wavlm_feat_dim = 1024
+wavlm_src = "/YOUR_PATH/WavLM-Base+.pt"
+wavlm_layer_num = 13
+wavlm_feat_dim = 768
 attention_in = 256
 ffn_hidden = 1024
 num_head = 4
@@ -50,14 +47,13 @@ use_posi = false
 output_activate_function = false
 selected_channel = 0
 max_speakers_per_chunk = 4
-max_speakers_per_frame = 4
 
 [train_dataset]
 path = "dataset.DiarizationDataset"
 [train_dataset.args]
-scp_file = "/home/ubuntu/Document/MMML/MSDWILD/data/train/wav.scp"
-rttm_file = "/home/ubuntu/Document/MMML/MSDWILD/data/train/rttm"
-uem_file = "/home/ubuntu/Document/MMML/MSDWILD/data/train/all.uem"
+scp_file = "data/AMI_AliMeeting_AISHELL4/train/wav.scp"
+rttm_file = "data/AMI_AliMeeting_AISHELL4/train/rttm"
+uem_file = "data/AMI_AliMeeting_AISHELL4/train/all.uem"
 chunk_size = 8
 chunk_shift = 6
 sample_rate = 16000
@@ -71,9 +67,9 @@ pin_memory = true
 [validate_dataset]
 path = "dataset.DiarizationDataset"
 [validate_dataset.args]
-scp_file = "/home/ubuntu/Document/MMML/MSDWILD/data/val/wav.scp"
-rttm_file = "/home/ubuntu/Document/MMML/MSDWILD/data/val/rttm"
-uem_file = "/home/ubuntu/Document/MMML/MSDWILD/data/val/all.uem"
+scp_file = "data/AMI_AliMeeting_AISHELL4/dev/wav.scp"
+rttm_file = "data/AMI_AliMeeting_AISHELL4/dev/rttm"
+uem_file = "data/AMI_AliMeeting_AISHELL4/dev/all.uem"
 chunk_size = 8
 chunk_shift = 8
 sample_rate = 16000
