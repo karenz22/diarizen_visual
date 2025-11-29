@@ -386,6 +386,13 @@ class Trainer:
         update_steps_per_epoch = steps_per_epoch // self.gradient_accumulation_steps
         update_steps_per_epoch = max(update_steps_per_epoch, 1)
 
+        # Define Checkpoint Milestones (1/3 and 2/3 of the epoch)
+        # We use (batch_idx + 1) logic, so we calculate exact step numbers
+        milestone_1 = int(steps_per_epoch * (1 / 3))
+        milestone_2 = int(steps_per_epoch * (2 / 3))
+        # Map step number to suffix
+        ckpt_milestones = {milestone_1: "1_3", milestone_2: "2_3"}
+
         if self.max_steps > 0:
             max_steps = self.max_steps
             max_epochs = self.max_steps // update_steps_per_epoch + int(self.max_steps % update_steps_per_epoch > 0)
@@ -399,6 +406,7 @@ class Trainer:
         logger.info(f"`update_steps_per_epoch`: {update_steps_per_epoch}")
         logger.info(f"`max_steps`: {max_steps}")
         logger.info(f"`max_epochs`: {max_epochs}")
+        logger.info(f"Intra-epoch checkpoints will be saved at steps: {milestone_1} and {milestone_2}")
 
         # Generator learning rate scheduler
         if self.warmup_steps > 0:
@@ -450,12 +458,30 @@ class Trainer:
                     loss_dict = self.training_step(batch, batch_idx)
                     training_epoch_output.append(loss_dict)
 
+                    # print(loss_dict["Loss"].item())
+
+                    if self.accelerator.is_local_main_process:
+                    # #     # Passing norm=0.0 as it is not actively calculated in this scope
+                    # #     # This updates the tqdm bar with the current batch's loss
+                    #     dataloader_bar.set_postfix_str(self.create_bar_desc(loss_dict["Loss"], norm=0.0))
+                        dataloader_bar.set_postfix_str(loss_dict["Loss"].item())
+
                     if not self.accelerator.optimizer_step_was_skipped:
                         if self.warmup_steps > 0:
                             self.lr_scheduler_step()
 
                         if self.use_one_cycle_lr:
                             self.lr_one_cycle_scheduler.step() 
+                
+                # --- [MODIFIED] Save Intra-epoch Checkpoints ---
+                # Check if the current step (1-based) matches our milestones
+                current_step = batch_idx + 1
+                if self.accelerator.is_local_main_process and current_step in ckpt_milestones:
+                    suffix = ckpt_milestones[current_step]
+                    ckpt_path = self.checkpoints_dir / f"epoch_{str(epoch).zfill(4)}_{suffix}"
+                    
+                    logger.info(f"Saving intra-epoch checkpoint to {ckpt_path.as_posix()}...")
+                    self.accelerator.save_state(ckpt_path.as_posix(), safe_serialization=False)
 
                 self.state.steps_trained += 1
             self.state.epochs_trained += 1
