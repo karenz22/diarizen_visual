@@ -28,14 +28,27 @@
 # diar_results = diar_pipeline('./example/EN2002a_30s.wav', sess_name='EN2002a')
 # print(diar_results)
 
-from diarizen.pipelines.inference_av import AV_DiariZenPipeline
+# from diarizen.pipelines.inference_av import AV_DiariZenPipeline
 
-# load pre-trained model
-diar_pipeline = AV_DiariZenPipeline.from_pretrained("BUT-FIT/diarizen-wavlm-large-s80-md")
+# # load pre-trained model
+# diar_pipeline = AV_DiariZenPipeline.from_pretrained("BUT-FIT/diarizen-wavlm-large-s80-md")
 
+# diar_pipeline = DiariZenPipeline.from_pretrained(
+#         "BUT-FIT/diarizen-wavlm-large-s80-md",
+#         rttm_out_dir='.'
+# )
+# # apply diarization pipeline
+# diar_results = diar_pipeline('/home/ubuntu/Document/MMML/MSDWILD/wav/00017.wav', sess_name='00017')
+
+import torch
+torch.cuda.is_available = lambda : False
+
+
+from diarizen.pipelines.inference import DiariZenPipeline
+
+diar_pipeline = DiariZenPipeline.from_pretrained(
+        "BUT-FIT/diarizen-wavlm-large-s80-md",
+        rttm_out_dir='/home/ubuntu/Document/MMML/MSDWILD/inference_results/av_wavlm'
+)
 # apply diarization pipeline
-diar_results = diar_pipeline('./example/EN2002a_30s.wav')
-
-# print results
-for turn, _, speaker in diar_results.itertracks(yield_label=True):
-    print(f"start={turn.start:.1f}s stop={turn.end:.1f}s speaker_{speaker}")
+diar_results = diar_pipeline('/home/ubuntu/Document/MMML/MSDWILD/wav/00017.wav', sess_name='EN2002a')
