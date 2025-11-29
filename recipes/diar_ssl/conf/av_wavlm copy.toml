@@ -1,0 +1,72 @@
+[meta]
+seed = 42
+save_dir = "exp/av_model"  # Change this to your desired output path
+
+[model]
+# Point to your new AV Model class
+path = "diarizen.models.eend.model_av_wavlm_conformer.AVModel"
+[model.args]
+wavlm_src = "wavlm_base"
+wavlm_layer_num = 13
+wavlm_feat_dim = 768
+visual_input_dim = 256
+attention_in = 256
+ffn_hidden = 1024
+num_head = 4
+num_layer = 4
+chunk_size = 5
+max_speakers_per_chunk = 4
+
+[optimizer]
+path = "torch.optim.AdamW"
+[optimizer.args]
+lr = 1e-4
+weight_decay = 0.01
+
+[trainer]
+# Point to your new AV Trainer class
+path = "recipes.diar_ssl.trainer_av.AVTrainer"
+[trainer.args]
+max_epochs = 100
+save_ckpt_interval = 1
+gradient_accumulation_steps = 1
+validation_interval = 1
+scheduler_name = "linear_schedule_with_warmup"
+warmup_ratio = 0.1
+freeze_wavlm = true 
+
+[train_dataset]
+# Point to your new AV Dataset class
+path = "recipes.diar_ssl.dataset_av.AV_DiarizationDataset"
+[train_dataset.args]
+scp_file = "/path/to/train/wav.scp"
+rttm_file = "/path/to/train/rttm"
+uem_file = "/path/to/train/all.uem"
+visual_root = "/path/to/train/videos"  # Path to folder containing training videos
+chunk_size = 5
+chunk_shift = 5
+sample_rate = 16000
+
+[train_dataset.dataloader]
+batch_size = 32
+num_workers = 8
+prefetch_factor = 2
+
+[validate_dataset]
+# Point to your new AV Dataset class
+path = "recipes.diar_ssl.dataset_av.AV_DiarizationDataset"
+[validate_dataset.args]
+scp_file = "/path/to/dev/wav.scp"
+rttm_file = "/path/to/dev/rttm"
+uem_file = "/path/to/dev/all.uem"
+visual_root = "/path/to/dev/videos"  # Path to folder containing validation videos
+chunk_size = 5
+chunk_shift = 5
+sample_rate = 16000
+
+[validate_dataset.dataloader]
+batch_size = 32
+num_workers = 8
+
+[finetune]
+finetune = false
